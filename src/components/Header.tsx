@@ -72,9 +72,9 @@ const Header: React.FC<HeaderProps> = ({ language, setLanguage, onAdminClick }) 
                   alt="Telangana Emblem" 
                   className="h-16 w-16"
                 />
-                <div className="absolute -bottom-1 -right-1 w-8 h-8 bg-gradient-to-r from-orange-500 to-red-600 rounded-full flex items-center justify-center shadow-lg">
-                  <span className="text-white font-bold text-xs"></span>
-                </div>
+               # <div className="absolute -bottom-1 -right-1 w-8 h-8 bg-gradient-to-r from-orange-500 to-red-600 rounded-full flex items-center justify-center shadow-lg">
+                #  <span className="text-white font-bold text-xs"></span>
+                # </div>
               </div>
               <div>
                 <h1 className="text-2xl font-bold text-gray-900">
