@@ -61,7 +61,7 @@ const Hero: React.FC<HeroProps> = ({ language, onBookingClick }) => {
       </div>
 
       {/* Hero Section */}
-      <section id="hero" className="relative min-h-screen flex items-center justify-center overflow-hidden">
+<section className="relative min-h-screen flex items-center justify-center pt-16">
         {/* Background Image */}
         <div 
           className="absolute inset-0 bg-cover bg-center bg-no-repeat"
