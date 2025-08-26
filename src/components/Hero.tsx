@@ -53,7 +53,7 @@ const Hero: React.FC<HeroProps> = ({ language, onBookingClick }) => {
       </div>
 
       {/* Hero Section */}
-      <section className="relative min-h-screen flex items-start justify-start pt-18">
+      <section className="relative min-h-screen flex items-start justify-start pt-24">
         {/* Background Image */}
         <div
           className="absolute inset-0 bg-cover bg-center bg-no-repeat"
@@ -64,7 +64,7 @@ const Hero: React.FC<HeroProps> = ({ language, onBookingClick }) => {
         <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/50 to-transparent" />
 
         {/* Content */}
-        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+<div className="relative z-10 max-w-7xl mr-auto pl-2 sm:pl-4 lg:pl-6 xl:pl-10 pr-4">
           {/* changed from lg:grid-cols-2 to single column */}
           <div className="grid grid-cols-1 gap-12 items-start">
             {/* Left Content (now full width) */}
