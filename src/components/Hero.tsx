@@ -65,7 +65,7 @@ const Hero: React.FC<HeroProps> = ({ language, onBookingClick }) => {
         {/* Background Image */}
         <div 
           className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-          style={{ backgroundImage: 'url(/67039ffadd4a2-6703a369255db.jpg)' }}
+          style={{ backgroundImage: 'url(/kaloji-1.jpg)' }}
         />
         
         {/* Overlay */}
