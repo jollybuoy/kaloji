@@ -128,34 +128,7 @@ const Hero: React.FC<HeroProps> = ({ language, onBookingClick }) => {
               </div>
             </div>
 
-            {/* Right Content - Stats */}
-            <div className="lg:text-right lg:mt-30">
-              <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-white/20">
-                <h3 className="text-2xl font-bold text-white mb-6">
-                  {language === 'en' ? 'Event Capacity' : 'కార్యక్రమ సామర్థ్యం'}
-                </h3>
-                <div className="space-y-6">
-                  <div className="text-center">
-                    <div className="text-4xl font-bold text-orange-400 mb-2">5000+</div>
-                    <div className="text-white text-sm">
-                      {language === 'en' ? 'Seating Capacity' : 'కూర్చునే సామర్థ్యం'}
-                    </div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-4xl font-bold text-orange-400 mb-2">500+</div>
-                    <div className="text-white text-sm">
-                      {language === 'en' ? 'Parking Spaces' : 'పార్కింగ్ స్థలాలు'}
-                    </div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-4xl font-bold text-orange-400 mb-2">24/7</div>
-                    <div className="text-white text-sm">
-                      {language === 'en' ? 'Support Available' : 'మద్దతు అందుబాటులో'}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
+           
           </div>
         </div>
 
