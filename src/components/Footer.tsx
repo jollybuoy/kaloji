@@ -200,10 +200,15 @@ const Footer: React.FC<FooterProps> = ({ language }) => {
             <p className="text-gray-400 text-sm mb-4 md:mb-0">
               {content[language].copyright}
             </p>
-            <div className="flex items-center space-x-2 text-sm text-gray-400">
-              <span>Made with</span>
-              <Heart className="w-4 h-4 text-red-500" />
-              <span>for Telangana Culture</span>
+            <div className="flex flex-col md:flex-row items-center space-y-2 md:space-y-0 md:space-x-4 text-sm text-gray-400">
+              <div className="flex items-center space-x-2">
+                <span>Made with</span>
+                <Heart className="w-4 h-4 text-red-500" />
+                <span>for Telangana Culture</span>
+              </div>
+              <div className="text-orange-400 font-medium">
+                JollyBuoy Technology Services Pvt. Ltd.
+              </div>
             </div>
           </div>
         </div>

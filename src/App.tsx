@@ -5,7 +5,6 @@ import Hero from './components/Hero';
 import About from './components/About';
 import Services from './components/Services';
 import Gallery from './components/Gallery';
-import Testimonials from './components/Testimonials';
 import Footer from './components/Footer';
 import AdminDashboard from './components/AdminDashboard';
 import BookingModal from './components/BookingModal';
@@ -88,7 +87,6 @@ function App() {
               onBookingClick={() => setShowBookingModal(true)}
             />
             <Gallery language={language} />
-            <Testimonials language={language} />
           </main>
           <Footer language={language} />
           
