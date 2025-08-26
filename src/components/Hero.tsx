@@ -61,18 +61,18 @@ const Hero: React.FC<HeroProps> = ({ language, onBookingClick }) => {
       </div>
 
       {/* Hero Section */}
-<section className="relative min-h-screen flex items-start justify-start pt-22">
+<section className="relative min-h-screen flex items-start justify-start pt-24">
         {/* Background Image */}
         <div 
           className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-          style={{ backgroundImage: 'url(/kaloji-1.jpg)' }}
+          style={{ backgroundImage: 'url(/FINAL-KV-01.jpg)' }}
         />
         
         {/* Overlay */}
         <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/50 to-transparent" />
         
         {/* Content */}
-<div className="relative z-10 max-w-7xl mr-auto px-4 sm:px-4 lg:px-6 xl:px-8 lg:-ml-6">
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             {/* Left Content */}
             <div className="text-white">
@@ -128,7 +128,36 @@ const Hero: React.FC<HeroProps> = ({ language, onBookingClick }) => {
               </div>
             </div>
 
-        
+            {/* Right Content - Stats */}
+            <div className="lg:text-right lg:mt-30">
+              <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-white/20">
+                <h3 className="text-2xl font-bold text-white mb-6">
+                  {language === 'en' ? 'Event Capacity' : 'కార్యక్రమ సామర్థ్యం'}
+                </h3>
+                <div className="space-y-6">
+                  <div className="text-center">
+                    <div className="text-4xl font-bold text-orange-400 mb-2">5000+</div>
+                    <div className="text-white text-sm">
+                      {language === 'en' ? 'Seating Capacity' : 'కూర్చునే సామర్థ్యం'}
+                    </div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-4xl font-bold text-orange-400 mb-2">500+</div>
+                    <div className="text-white text-sm">
+                      {language === 'en' ? 'Parking Spaces' : 'పార్కింగ్ స్థలాలు'}
+                    </div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-4xl font-bold text-orange-400 mb-2">24/7</div>
+                    <div className="text-white text-sm">
+                      {language === 'en' ? 'Support Available' : 'మద్దతు అందుబాటులో'}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
 
         {/* Decorative Elements */}
         <div className="absolute bottom-0 left-0 w-full h-32 bg-gradient-to-t from-white to-transparent"></div>
