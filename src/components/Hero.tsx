@@ -129,7 +129,7 @@ const Hero: React.FC<HeroProps> = ({ language, onBookingClick }) => {
             </div>
 
             {/* Right Content - Stats */}
-            <div className="mt-8 lg:mt-0 lg:absolute lg:right-48 lg:bottom-6 lg:w-[560px] lg:z-20">
+            <div className="mt-8 lg:mt-0 lg:absolute lg:right-24 lg:bottom-6 lg:w-[560px] lg:z-20">
   <div className="bg-black/60 backdrop-blur-lg rounded-2xl p-8 border border-white/20 shadow-2xl">
                 <h3 className="text-2xl font-bold text-white mb-6">
                   {language === 'en' ? 'Event Capacity' : 'కార్యక్రమ సామర్థ్యం'}
