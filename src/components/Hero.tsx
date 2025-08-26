@@ -72,7 +72,7 @@ const Hero: React.FC<HeroProps> = ({ language, onBookingClick }) => {
         <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/50 to-transparent" />
         
         {/* Content */}
-<div className="relative z-10 max-w-7xl mr-auto px-2 sm:px-4 lg:px-6 xl:px-8 lg:-ml-6">
+<div className="relative z-10 max-w-7xl mr-auto px-4 sm:px-4 lg:px-6 xl:px-8 lg:-ml-6">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             {/* Left Content */}
             <div className="text-white">
