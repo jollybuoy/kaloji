@@ -189,7 +189,15 @@ const Gallery: React.FC<GalleryProps> = ({ language }) => {
                 : "కాళోజీ కన్వెన్షన్ సెంటర్‌లో గుర్తుండిపోయే సాంస్కృతిక కార్యక్రమాల వారసత్వంలో చేరండి"
               }
             </p>
-            <button className="bg-gradient-to-r from-orange-500 to-red-600 text-white px-8 py-3 rounded-lg font-semibold hover:shadow-lg transform hover:scale-105 transition-all duration-200">
+            <button 
+              onClick={() => {
+                const element = document.getElementById('contact');
+                if (element) {
+                  element.scrollIntoView({ behavior: 'smooth' });
+                }
+              }}
+              className="bg-gradient-to-r from-orange-500 to-red-600 text-white px-8 py-3 rounded-lg font-semibold hover:shadow-lg transform hover:scale-105 transition-all duration-200"
+            >
               {language === 'en' ? "Book Your Event" : "మీ కార్యక్రమాన్ని బుక్ చేయండి"}
             </button>
           </div>

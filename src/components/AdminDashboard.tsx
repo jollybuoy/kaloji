@@ -15,9 +15,10 @@ import {
 
 interface AdminDashboardProps {
   onBackToPublic: () => void;
+  onLogout: () => void;
 }
 
-const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBackToPublic }) => {
+const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBackToPublic, onLogout }) => {
   const [activeTab, setActiveTab] = useState('overview');
 
   // Mock data for demonstration
@@ -56,6 +57,12 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBackToPublic }) => {
               <button className="bg-gradient-to-r from-orange-500 to-red-600 text-white px-4 py-2 rounded-lg font-medium hover:shadow-lg transition-all duration-200">
                 <Plus className="h-4 w-4 inline mr-2" />
                 New Booking
+              </button>
+              <button
+                onClick={onLogout}
+                className="border border-gray-300 text-gray-700 px-4 py-2 rounded-lg font-medium hover:bg-gray-50 transition-all duration-200"
+              >
+                Logout
               </button>
             </div>
           </div>

@@ -3,9 +3,10 @@ import { Phone, Mail, MapPin, Calendar, Users } from 'lucide-react';
 
 interface HeroProps {
   language: 'en' | 'te';
+  onBookingClick: () => void;
 }
 
-const Hero: React.FC<HeroProps> = ({ language }) => {
+const Hero: React.FC<HeroProps> = ({ language, onBookingClick }) => {
   const content = {
     en: {
       title: "Kaloji Convention Centre",
@@ -105,11 +106,22 @@ const Hero: React.FC<HeroProps> = ({ language }) => {
 
               {/* CTA Buttons */}
               <div className="flex flex-col sm:flex-row gap-4">
-                <button className="bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white px-8 py-4 rounded-lg font-semibold text-lg transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105">
+                <button 
+                  onClick={onBookingClick}
+                  className="bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white px-8 py-4 rounded-lg font-semibold text-lg transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
+                >
                   <Calendar className="inline w-5 h-5 mr-2" />
                   {content[language].bookNow}
                 </button>
-                <button className="border-2 border-white hover:bg-white hover:text-gray-900 text-white px-8 py-4 rounded-lg font-semibold text-lg transition-all duration-300">
+                <button 
+                  onClick={() => {
+                    const element = document.getElementById('contact');
+                    if (element) {
+                      element.scrollIntoView({ behavior: 'smooth' });
+                    }
+                  }}
+                  className="border-2 border-white hover:bg-white hover:text-gray-900 text-white px-8 py-4 rounded-lg font-semibold text-lg transition-all duration-300"
+                >
                   <Users className="inline w-5 h-5 mr-2" />
                   {content[language].contact}
                 </button>

@@ -16,9 +16,10 @@ import {
 
 interface ServicesProps {
   language: 'en' | 'te';
+  onBookingClick: () => void;
 }
 
-const Services: React.FC<ServicesProps> = ({ language }) => {
+const Services: React.FC<ServicesProps> = ({ language, onBookingClick }) => {
   const content = {
     en: {
       title: "Our Premium Services",
@@ -263,10 +264,21 @@ const Services: React.FC<ServicesProps> = ({ language }) => {
               }
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <button className="bg-white text-orange-600 px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors duration-200">
+              <button 
+                onClick={onBookingClick}
+                className="bg-white text-orange-600 px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors duration-200"
+              >
                 {language === 'en' ? "Get Quote" : "కోట్ పొందండి"}
               </button>
-              <button className="border-2 border-white text-white px-8 py-3 rounded-lg font-semibold hover:bg-white hover:text-orange-600 transition-colors duration-200">
+              <button 
+                onClick={() => {
+                  const element = document.getElementById('contact');
+                  if (element) {
+                    element.scrollIntoView({ behavior: 'smooth' });
+                  }
+                }}
+                className="border-2 border-white text-white px-8 py-3 rounded-lg font-semibold hover:bg-white hover:text-orange-600 transition-colors duration-200"
+              >
                 {language === 'en' ? "Schedule Visit" : "సందర్శన షెడ్యూల్ చేయండి"}
               </button>
             </div>
