@@ -14,7 +14,30 @@ import {
   Download,
   Clock
 } from 'lucide-react';
-import { bookingService, Booking } from '../lib/database';
+
+interface Booking {
+  id: string;
+  event_type: string;
+  event_name: string;
+  event_date: string;
+  start_time: string;
+  end_time: string;
+  expected_guests: number;
+  organizer_name: string;
+  organization?: string;
+  phone: string;
+  email: string;
+  address?: string;
+  catering: boolean;
+  decoration: boolean;
+  photography: boolean;
+  security: boolean;
+  parking: boolean;
+  special_requirements?: string;
+  status: 'pending' | 'confirmed' | 'cancelled';
+  created_at?: string;
+  updated_at?: string;
+}
 
 interface AdminDashboardProps {
   onBackToPublic: () => void;
@@ -38,53 +61,19 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBackToPublic, onLogou
 
   const fetchBookings = async () => {
     try {
-      // Check if database is configured
-      const databaseUrl = import.meta.env.VITE_DATABASE_URL_UNPOOLED ||
-                         import.meta.env.VITE_DATABASE_URL || 
-                         import.meta.env.VITE_NETLIFY_DATABASE_URL ||
-                         import.meta.env.VITE_NETLIFY_DATABASE_URL_UNPOOLED ||
-                         (typeof process !== 'undefined' ? process.env.NETLIFY_DATABASE_URL : null);
-      
-      if (!databaseUrl) {
-        // Load from localStorage as fallback
-        const localBookings = JSON.parse(localStorage.getItem('bookings') || '[]');
-        setBookings(localBookings);
-        setStats({
-          totalBookings: localBookings.length,
-          activeEvents: localBookings.filter((b: any) => b.status === 'confirmed').length,
-          pendingBookings: localBookings.filter((b: any) => b.status === 'pending').length,
-          confirmedBookings: localBookings.filter((b: any) => b.status === 'confirmed').length
-        });
-        setLoading(false);
-        return;
-      }
-
-      const data = await bookingService.getAllBookings();
-      const statsData = await bookingService.getBookingStats();
-      
-      setBookings(data);
+      // Load from localStorage for now
+      const localBookings = JSON.parse(localStorage.getItem('bookings') || '[]');
+      setBookings(localBookings);
       setStats({
-        totalBookings: parseInt(statsData.total_bookings) || 0,
-        activeEvents: parseInt(statsData.active_events) || 0,
-        pendingBookings: parseInt(statsData.pending_bookings) || 0,
-        confirmedBookings: parseInt(statsData.confirmed_bookings) || 0
+        totalBookings: localBookings.length,
+        activeEvents: localBookings.filter((b: Booking) => b.status === 'confirmed').length,
+        pendingBookings: localBookings.filter((b: Booking) => b.status === 'pending').length,
+        confirmedBookings: localBookings.filter((b: Booking) => b.status === 'confirmed').length
       });
-
     } catch (error) {
       console.error('Error fetching bookings:', error);
-      // Try loading from localStorage as fallback
-      try {
-        const localBookings = JSON.parse(localStorage.getItem('bookings') || '[]');
-        setBookings(localBookings);
-        setStats({
-          totalBookings: localBookings.length,
-          activeEvents: localBookings.filter((b: any) => b.status === 'confirmed').length,
-          pendingBookings: localBookings.filter((b: any) => b.status === 'pending').length,
-          confirmedBookings: localBookings.filter((b: any) => b.status === 'confirmed').length
-        });
-      } catch (fallbackError) {
-        console.error('Error loading fallback data:', fallbackError);
-      }
+      setBookings([]);
+      setStats({ totalBookings: 0, activeEvents: 0, pendingBookings: 0, confirmedBookings: 0 });
     } finally {
       setLoading(false);
     }
@@ -92,22 +81,14 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBackToPublic, onLogou
 
   const updateBookingStatus = async (bookingId: string, newStatus: string) => {
     try {
-      if (!import.meta.env.VITE_DATABASE_URL) {
-        // Update localStorage
-        const localBookings = JSON.parse(localStorage.getItem('bookings') || '[]');
-        const updatedBookings = localBookings.map((b: any) => 
-          b.id === bookingId ? { ...b, status: newStatus } : b
-        );
-        localStorage.setItem('bookings', JSON.stringify(updatedBookings));
-        await fetchBookings();
-        alert('Booking status updated locally');
-        return;
-      }
-
-      await bookingService.updateBookingStatus(bookingId, newStatus as 'pending' | 'confirmed' | 'cancelled');
-      await fetchBookings(); // Refresh the data
+      // Update localStorage
+      const localBookings = JSON.parse(localStorage.getItem('bookings') || '[]');
+      const updatedBookings = localBookings.map((b: Booking) => 
+        b.id === bookingId ? { ...b, status: newStatus as 'pending' | 'confirmed' | 'cancelled' } : b
+      );
+      localStorage.setItem('bookings', JSON.stringify(updatedBookings));
+      await fetchBookings();
       alert('Booking status updated successfully');
-
     } catch (error) {
       console.error('Error updating booking:', error);
       alert('Error updating booking status');
@@ -117,20 +98,12 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBackToPublic, onLogou
   const deleteBooking = async (bookingId: string) => {
     if (confirm('Are you sure you want to delete this booking?')) {
       try {
-        if (!import.meta.env.VITE_DATABASE_URL) {
-          // Delete from localStorage
-          const localBookings = JSON.parse(localStorage.getItem('bookings') || '[]');
-          const updatedBookings = localBookings.filter((b: any) => b.id !== bookingId);
-          localStorage.setItem('bookings', JSON.stringify(updatedBookings));
-          await fetchBookings();
-          alert('Booking deleted locally');
-          return;
-        }
-
-        await bookingService.deleteBooking(bookingId);
-        await fetchBookings(); // Refresh the data
+        // Delete from localStorage
+        const localBookings = JSON.parse(localStorage.getItem('bookings') || '[]');
+        const updatedBookings = localBookings.filter((b: Booking) => b.id !== bookingId);
+        localStorage.setItem('bookings', JSON.stringify(updatedBookings));
+        await fetchBookings();
         alert('Booking deleted successfully');
-
       } catch (error) {
         console.error('Error deleting booking:', error);
         alert('Error deleting booking');
@@ -320,7 +293,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBackToPublic, onLogou
                               <Edit className="h-4 w-4" />
                             </button>
                             <button 
-                              onClick={() => deleteBooking(booking.id)}
+                              onClick={() => deleteBooking(booking.id!)}
                               className="text-red-600 hover:text-red-900"
                             >
                               <Trash2 className="h-4 w-4" />
@@ -390,7 +363,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBackToPublic, onLogou
                         <td className="px-6 py-4">
                           <select
                             value={booking.status}
-                            onChange={(e) => updateBookingStatus(booking.id, e.target.value)}
+                            onChange={(e) => updateBookingStatus(booking.id!, e.target.value)}
                             className={`text-xs font-semibold rounded-full px-2 py-1 border-0 ${
                               booking.status === 'confirmed' 
                                 ? 'bg-green-100 text-green-800' 
@@ -410,7 +383,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBackToPublic, onLogou
                               <Edit className="h-4 w-4" />
                             </button>
                             <button 
-                              onClick={() => deleteBooking(booking.id)}
+                              onClick={() => deleteBooking(booking.id!)}
                               className="text-red-600 hover:text-red-900"
                             >
                               <Trash2 className="h-4 w-4" />

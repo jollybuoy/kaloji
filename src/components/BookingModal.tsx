@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { X, Calendar, Clock, Users, MapPin, Phone, Mail, User, CreditCard, Check } from 'lucide-react';
-import { bookingService } from '../lib/database';
 
 interface BookingModalProps {
   isOpen: boolean;
@@ -154,7 +153,7 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, language }
 
   const handleSubmit = () => {
     if (validateForm()) {
-      handleBookingSubmit();
+      submitBooking();
     }
   };
 
@@ -174,40 +173,14 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, language }
     return true;
   };
 
-  const handleBookingSubmit = async () => {
+  const submitBooking = async () => {
     setIsLoading(true);
     
     try {
-      // Check if database is configured
-      const databaseUrl = import.meta.env.VITE_DATABASE_URL_UNPOOLED ||
-                         import.meta.env.VITE_DATABASE_URL || 
-                         import.meta.env.VITE_NETLIFY_DATABASE_URL ||
-                         import.meta.env.VITE_NETLIFY_DATABASE_URL_UNPOOLED ||
-                         (typeof process !== 'undefined' ? process.env.NETLIFY_DATABASE_URL : null);
-      
-      if (!databaseUrl) {
-        alert(language === 'en' ? 
-          'Connecting to database... Your booking will be processed.' : 
-          'డేటాబేస్‌కు కనెక్ట్ అవుతోంది... మీ బుకింగ్ ప్రాసెస్ చేయబడుతుంది.');
-        
-        // Save to localStorage as fallback
-        const bookings = JSON.parse(localStorage.getItem('bookings') || '[]');
-        const newBooking = {
-          id: Date.now().toString(),
-          ...formData,
-          expected_guests: parseInt(formData.expectedGuests),
-          status: 'pending',
-          created_at: new Date().toISOString()
-        };
-        bookings.push(newBooking);
-        localStorage.setItem('bookings', JSON.stringify(bookings));
-        
-        alert(language === 'en' ? 'Booking saved locally! Please contact us directly.' : 'బుకింగ్ స్థానికంగా సేవ్ చేయబడింది! దయచేసి మమ్మల్ని నేరుగా సంప్రదించండి.');
-        onClose();
-        return;
-      }
-
-      const bookingData = {
+      // Save booking to localStorage for now
+      const bookings = JSON.parse(localStorage.getItem('bookings') || '[]');
+      const newBooking = {
+        id: Date.now().toString(),
         event_type: formData.eventType,
         event_name: formData.eventName,
         event_date: formData.eventDate,
@@ -215,25 +188,28 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, language }
         end_time: formData.endTime,
         expected_guests: parseInt(formData.expectedGuests),
         organizer_name: formData.organizerName,
-        organization: formData.organization || undefined,
+        organization: formData.organization || '',
         phone: formData.phone,
         email: formData.email,
-        address: formData.address || undefined,
+        address: formData.address || '',
         catering: formData.catering,
         decoration: formData.decoration,
         photography: formData.photography,
         security: formData.security,
         parking: formData.parking,
-        special_requirements: formData.specialRequirements || undefined,
-        status: 'pending' as const
+        special_requirements: formData.specialRequirements || '',
+        status: 'pending',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
       };
-
-      await bookingService.createBooking(bookingData);
+      bookings.push(newBooking);
+      localStorage.setItem('bookings', JSON.stringify(bookings));
       
-      alert(language === 'en' ? 'Booking submitted successfully! We will contact you soon.' : 'బుకింగ్ విజయవంతంగా సమర్పించబడింది! మేము త్వరలో మిమ్మల్ని సంప్రదిస్తాము.');
+      alert(language === 'en' ? 
+        'Booking submitted successfully! We will contact you within 24 hours.' : 
+        'బుకింగ్ విజయవంతంగా సమర్పించబడింది! మేము 24 గంటలలోపు మిమ్మల్ని సంప్రదిస్తాము.');
       
       // Reset form and close modal
-      onClose();
       setCurrentStep(1);
       setFormData({
         eventType: '',
@@ -254,31 +230,13 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, language }
         parking: false,
         specialRequirements: ''
       });
+      onClose();
+      
     } catch (error) {
       console.error('Error submitting booking:', error);
-      
-      // Fallback to localStorage if database fails
-      try {
-        const bookings = JSON.parse(localStorage.getItem('bookings') || '[]');
-        const newBooking = {
-          id: Date.now().toString(),
-          ...formData,
-          expected_guests: parseInt(formData.expectedGuests),
-          status: 'pending',
-          created_at: new Date().toISOString()
-        };
-        bookings.push(newBooking);
-        localStorage.setItem('bookings', JSON.stringify(bookings));
-        
-        alert(language === 'en' ? 
-          'Booking saved locally! We will contact you soon. Please also call us directly.' : 
-          'బుకింగ్ స్థానికంగా సేవ్ చేయబడింది! మేము త్వరలో మిమ్మల్ని సంప్రదిస్తాము. దయచేసి మమ్మల్ని నేరుగా కూడా కాల్ చేయండి.');
-        onClose();
-      } catch (fallbackError) {
-        alert(language === 'en' ? 
-          'Error submitting booking. Please call us directly at +91 870-2345-678' : 
-          'బుకింగ్ సమర్పించడంలో లోపం. దయచేసి +91 870-2345-678 కు నేరుగా కాల్ చేయండి');
-      }
+      alert(language === 'en' ? 
+        'Error submitting booking. Please call us directly at +91 870-2345-678' : 
+        'బుకింగ్ సమర్పించడంలో లోపం. దయచేసి +91 870-2345-678 కు నేరుగా కాల్ చేయండి');
     } finally {
       setIsLoading(false);
     }
@@ -288,7 +246,7 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, language }
 
   return (
     <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+      <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto relative">
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b">
           <h2 className="text-2xl font-bold text-gray-900">{t.title}</h2>
