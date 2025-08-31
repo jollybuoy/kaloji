@@ -104,8 +104,6 @@ function App() {
           </main>
           <Footer language={language} />
           
-          <DatabaseTest />
-          
           <BookingModal
             isOpen={showBookingModal}
             onClose={() => setShowBookingModal(false)}
