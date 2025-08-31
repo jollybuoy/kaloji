@@ -10,6 +10,7 @@ import Footer from './components/Footer';
 import AdminDashboard from './components/AdminDashboard';
 import BookingModal from './components/BookingModal';
 import AdminLogin from './components/AdminLogin';
+import DatabaseTest from './components/DatabaseTest';
 
 function App() {
   const [currentView, setCurrentView] = useState<'public' | 'admin'>('public');
@@ -102,6 +103,8 @@ function App() {
             <Gallery language={language} />
           </main>
           <Footer language={language} />
+          
+          <DatabaseTest />
           
           <BookingModal
             isOpen={showBookingModal}

@@ -9,6 +9,7 @@ interface BookingModalProps {
 
 const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, language }) => {
   const [currentStep, setCurrentStep] = useState(1);
+  const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
     // Event Details
     eventType: '',
@@ -144,17 +145,13 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, language }
   };
 
   const handleNext = () => {
-    if (currentStep < 4) setCurrentStep(currentStep + 1);
+    if (validateForm()) {
+      setCurrentStep(currentStep + 1);
+    }
   };
 
   const handlePrevious = () => {
     if (currentStep > 1) setCurrentStep(currentStep - 1);
-  };
-
-  const handleSubmit = () => {
-    if (validateForm()) {
-      submitBooking();
-    }
   };
 
   const validateForm = () => {
@@ -177,7 +174,7 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, language }
     setIsLoading(true);
     
     try {
-      // Save booking to localStorage for now
+      // Save booking to localStorage
       const bookings = JSON.parse(localStorage.getItem('bookings') || '[]');
       const newBooking = {
         id: Date.now().toString(),
@@ -242,7 +239,9 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, language }
     }
   };
 
-  const [isLoading, setIsLoading] = useState(false);
+  const handleSubmit = () => {
+    submitBooking();
+  };
 
   return (
     <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
@@ -571,11 +570,7 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, language }
           <div className="flex space-x-3">
             {currentStep < 4 ? (
               <button
-                onClick={() => {
-                  if (validateForm()) {
-                    handleNext();
-                  }
-                }}
+                onClick={handleNext}
                 className="bg-gradient-to-r from-orange-500 to-red-600 text-white px-6 py-2 rounded-lg font-medium hover:from-orange-600 hover:to-red-700 transition-all duration-200"
               >
                 {t.buttons.next}
