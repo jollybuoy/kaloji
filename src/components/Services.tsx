@@ -268,7 +268,7 @@ const Services: React.FC<ServicesProps> = ({ language, onBookingClick }) => {
                 onClick={onBookingClick}
                 className="bg-white text-orange-600 px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors duration-200"
               >
-                {language === 'en' ? "Get Quote" : "కోట్ పొందండి"}
+                {language === 'en' ? "Book Your Event" : "మీ కార్యక్రమాన్ని బుక్ చేయండి"}
               </button>
               <button 
                 onClick={() => {

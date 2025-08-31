@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useEffect } from 'react';
 import { 
   ArrowLeft, 
   Calendar, 
@@ -12,6 +13,7 @@ import {
   Filter,
   Download
 } from 'lucide-react';
+import { supabase } from '../lib/supabase';
 
 interface AdminDashboardProps {
   onBackToPublic: () => void;
@@ -20,20 +22,102 @@ interface AdminDashboardProps {
 
 const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBackToPublic, onLogout }) => {
   const [activeTab, setActiveTab] = useState('overview');
+  const [bookings, setBookings] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState({
+    totalBookings: 0,
+    activeEvents: 0,
+    pendingBookings: 0,
+    confirmedBookings: 0
+  });
 
-  // Mock data for demonstration
-  const stats = [
-    { title: 'Total Bookings', value: '24', icon: Calendar, color: 'blue' },
-    { title: 'Active Events', value: '8', icon: Users, color: 'green' },
-    { title: 'Revenue (₹)', value: '12,50,000', icon: DollarSign, color: 'orange' },
-    { title: 'Growth', value: '+15%', icon: TrendingUp, color: 'purple' }
-  ];
+  useEffect(() => {
+    fetchBookings();
+  }, []);
 
-  const recentBookings = [
-    { id: 1, event: 'Cultural Festival', client: 'Telangana Arts Society', date: '2024-01-15', status: 'Confirmed' },
-    { id: 2, event: 'Corporate Conference', client: 'Tech Solutions Ltd', date: '2024-01-18', status: 'Pending' },
-    { id: 3, event: 'Wedding Reception', client: 'Sharma Family', date: '2024-01-20', status: 'Confirmed' },
-    { id: 4, event: 'Government Meeting', client: 'State Department', date: '2024-01-22', status: 'Confirmed' }
+  const fetchBookings = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('bookings')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('Error fetching bookings:', error);
+      } else {
+        setBookings(data || []);
+        
+        // Calculate stats
+        const totalBookings = data?.length || 0;
+        const pendingBookings = data?.filter(b => b.status === 'pending').length || 0;
+        const confirmedBookings = data?.filter(b => b.status === 'confirmed').length || 0;
+        const activeEvents = data?.filter(b => {
+          const eventDate = new Date(b.event_date);
+          const today = new Date();
+          return eventDate >= today && b.status === 'confirmed';
+        }).length || 0;
+
+        setStats({
+          totalBookings,
+          activeEvents,
+          pendingBookings,
+          confirmedBookings
+        });
+      }
+    } catch (error) {
+      console.error('Error fetching bookings:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const updateBookingStatus = async (bookingId: string, newStatus: string) => {
+    try {
+      const { error } = await supabase
+        .from('bookings')
+        .update({ status: newStatus })
+        .eq('id', bookingId);
+
+      if (error) {
+        console.error('Error updating booking:', error);
+        alert('Error updating booking status');
+      } else {
+        fetchBookings(); // Refresh the data
+        alert('Booking status updated successfully');
+      }
+    } catch (error) {
+      console.error('Error updating booking:', error);
+      alert('Error updating booking status');
+    }
+  };
+
+  const deleteBooking = async (bookingId: string) => {
+    if (confirm('Are you sure you want to delete this booking?')) {
+      try {
+        const { error } = await supabase
+          .from('bookings')
+          .delete()
+          .eq('id', bookingId);
+
+        if (error) {
+          console.error('Error deleting booking:', error);
+          alert('Error deleting booking');
+        } else {
+          fetchBookings(); // Refresh the data
+          alert('Booking deleted successfully');
+        }
+      } catch (error) {
+        console.error('Error deleting booking:', error);
+        alert('Error deleting booking');
+      }
+    }
+  };
+
+  const statsDisplay = [
+    { title: 'Total Bookings', value: stats.totalBookings.toString(), icon: Calendar, color: 'blue' },
+    { title: 'Active Events', value: stats.activeEvents.toString(), icon: Users, color: 'green' },
+    { title: 'Pending', value: stats.pendingBookings.toString(), icon: Clock, color: 'orange' },
+    { title: 'Confirmed', value: stats.confirmedBookings.toString(), icon: TrendingUp, color: 'purple' }
   ];
 
   return (
@@ -100,7 +184,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBackToPublic, onLogou
           <div className="space-y-8">
             {/* Stats Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {stats.map((stat, index) => {
+              {statsDisplay.map((stat, index) => {
                 const Icon = stat.icon;
                 return (
                   <div key={index} className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
@@ -136,7 +220,17 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBackToPublic, onLogou
                   </div>
                 </div>
               </div>
-              <div className="overflow-x-auto">
+              {loading ? (
+                <div className="p-8 text-center">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600 mx-auto"></div>
+                  <p className="text-gray-600 mt-2">Loading bookings...</p>
+                </div>
+              ) : bookings.length === 0 ? (
+                <div className="p-8 text-center">
+                  <p className="text-gray-600">No bookings found</p>
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
                 <table className="w-full">
                   <thead className="bg-gray-50">
                     <tr>
@@ -144,10 +238,13 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBackToPublic, onLogou
                         Event
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Client
+                        Organizer
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Date
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Guests
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Status
@@ -158,32 +255,49 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBackToPublic, onLogou
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
-                    {recentBookings.map((booking) => (
+                    {bookings.slice(0, 10).map((booking) => (
                       <tr key={booking.id} className="hover:bg-gray-50">
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm font-medium text-gray-900">{booking.event}</div>
+                          <div className="text-sm font-medium text-gray-900">{booking.event_name}</div>
+                          <div className="text-xs text-gray-500">{booking.event_type}</div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm text-gray-900">{booking.client}</div>
+                          <div className="text-sm text-gray-900">{booking.organizer_name}</div>
+                          <div className="text-xs text-gray-500">{booking.organization}</div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm text-gray-900">{booking.date}</div>
+                          <div className="text-sm text-gray-900">{booking.event_date}</div>
+                          <div className="text-xs text-gray-500">{booking.start_time} - {booking.end_time}</div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                            booking.status === 'Confirmed' 
-                              ? 'bg-green-100 text-green-800' 
-                              : 'bg-yellow-100 text-yellow-800'
-                          }`}>
-                            {booking.status}
-                          </span>
+                          <div className="text-sm text-gray-900">{booking.expected_guests}</div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <select
+                            value={booking.status}
+                            onChange={(e) => updateBookingStatus(booking.id, e.target.value)}
+                            className={`text-xs font-semibold rounded-full px-2 py-1 border-0 ${
+                              booking.status === 'confirmed' 
+                                ? 'bg-green-100 text-green-800' 
+                                : booking.status === 'cancelled'
+                                ? 'bg-red-100 text-red-800'
+                                : 'bg-yellow-100 text-yellow-800'
+                            }`}
+                          >
+                            <option value="pending">Pending</option>
+                            <option value="confirmed">Confirmed</option>
+                            <option value="cancelled">Cancelled</option>
+                          </select>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                           <div className="flex space-x-2">
                             <button className="text-blue-600 hover:text-blue-900">
                               <Edit className="h-4 w-4" />
                             </button>
-                            <button className="text-red-600 hover:text-red-900">
+                            <button 
+                              onClick={() => deleteBooking(booking.id)}
+                              className="text-red-600 hover:text-red-900"
+                            >
                               <Trash2 className="h-4 w-4" />
                             </button>
                           </div>
@@ -193,12 +307,102 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBackToPublic, onLogou
                   </tbody>
                 </table>
               </div>
+              )}
             </div>
           </div>
         )}
 
         {/* Other tabs content */}
-        {activeTab !== 'overview' && (
+        {activeTab === 'bookings' && (
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100">
+            <div className="px-6 py-4 border-b border-gray-100">
+              <h3 className="text-lg font-semibold text-gray-900">All Bookings</h3>
+            </div>
+            {loading ? (
+              <div className="p-8 text-center">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600 mx-auto"></div>
+                <p className="text-gray-600 mt-2">Loading bookings...</p>
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Event Details</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Organizer</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Contact</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Services</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {bookings.map((booking) => (
+                      <tr key={booking.id} className="hover:bg-gray-50">
+                        <td className="px-6 py-4">
+                          <div className="text-sm font-medium text-gray-900">{booking.event_name}</div>
+                          <div className="text-xs text-gray-500">{booking.event_type}</div>
+                          <div className="text-xs text-gray-500">{booking.event_date} | {booking.start_time} - {booking.end_time}</div>
+                          <div className="text-xs text-gray-500">{booking.expected_guests} guests</div>
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="text-sm text-gray-900">{booking.organizer_name}</div>
+                          <div className="text-xs text-gray-500">{booking.organization}</div>
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="text-sm text-gray-900">{booking.phone}</div>
+                          <div className="text-xs text-gray-500">{booking.email}</div>
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="flex flex-wrap gap-1">
+                            {booking.catering && <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs">Catering</span>}
+                            {booking.decoration && <span className="bg-purple-100 text-purple-800 px-2 py-1 rounded text-xs">Decoration</span>}
+                            {booking.photography && <span className="bg-green-100 text-green-800 px-2 py-1 rounded text-xs">Photography</span>}
+                            {booking.security && <span className="bg-red-100 text-red-800 px-2 py-1 rounded text-xs">Security</span>}
+                            {booking.parking && <span className="bg-yellow-100 text-yellow-800 px-2 py-1 rounded text-xs">Parking</span>}
+                          </div>
+                        </td>
+                        <td className="px-6 py-4">
+                          <select
+                            value={booking.status}
+                            onChange={(e) => updateBookingStatus(booking.id, e.target.value)}
+                            className={`text-xs font-semibold rounded-full px-2 py-1 border-0 ${
+                              booking.status === 'confirmed' 
+                                ? 'bg-green-100 text-green-800' 
+                                : booking.status === 'cancelled'
+                                ? 'bg-red-100 text-red-800'
+                                : 'bg-yellow-100 text-yellow-800'
+                            }`}
+                          >
+                            <option value="pending">Pending</option>
+                            <option value="confirmed">Confirmed</option>
+                            <option value="cancelled">Cancelled</option>
+                          </select>
+                        </td>
+                        <td className="px-6 py-4 text-sm font-medium">
+                          <div className="flex space-x-2">
+                            <button className="text-blue-600 hover:text-blue-900">
+                              <Edit className="h-4 w-4" />
+                            </button>
+                            <button 
+                              onClick={() => deleteBooking(booking.id)}
+                              className="text-red-600 hover:text-red-900"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Other tabs content */}
+        {activeTab !== 'overview' && activeTab !== 'bookings' && (
           <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-8 text-center">
             <h3 className="text-lg font-semibold text-gray-900 mb-2">
               {activeTab.charAt(0).toUpperCase() + activeTab.slice(1)} Management

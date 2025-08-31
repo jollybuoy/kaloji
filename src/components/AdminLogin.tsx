@@ -18,11 +18,18 @@ const AdminLogin: React.FC<AdminLoginProps> = ({ onLogin, onCancel }) => {
     e.preventDefault();
     setIsLoading(true);
     
-    // Simulate API call delay
-    setTimeout(() => {
-      onLogin(credentials);
-      setIsLoading(false);
-    }, 1000);
+    // Demo credentials: admin / admin123
+    if (credentials.username === 'admin' && credentials.password === 'admin123') {
+      setTimeout(() => {
+        onLogin(credentials);
+        setIsLoading(false);
+      }, 1000);
+    } else {
+      setTimeout(() => {
+        alert('Invalid credentials. Use: admin / admin123');
+        setIsLoading(false);
+      }, 1000);
+    }
   };
 
   const handleInputChange = (field: string, value: string) => {
