@@ -11,9 +11,10 @@ import {
   Trash2,
   Search,
   Filter,
-  Download
+  Download,
+  Clock
 } from 'lucide-react';
-import { supabase } from '../lib/supabase';
+import { bookingService, Booking } from '../lib/database';
 
 interface AdminDashboardProps {
   onBackToPublic: () => void;
@@ -22,7 +23,7 @@ interface AdminDashboardProps {
 
 const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBackToPublic, onLogout }) => {
   const [activeTab, setActiveTab] = useState('overview');
-  const [bookings, setBookings] = useState<any[]>([]);
+  const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({
     totalBookings: 0,
@@ -37,35 +38,20 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBackToPublic, onLogou
 
   const fetchBookings = async () => {
     try {
-      const { data, error } = await supabase
-        .from('bookings')
-        .select('*')
-        .order('created_at', { ascending: false });
+      const data = await bookingService.getAllBookings();
+      const statsData = await bookingService.getBookingStats();
+      
+      setBookings(data);
+      setStats({
+        totalBookings: parseInt(statsData.total_bookings) || 0,
+        activeEvents: parseInt(statsData.active_events) || 0,
+        pendingBookings: parseInt(statsData.pending_bookings) || 0,
+        confirmedBookings: parseInt(statsData.confirmed_bookings) || 0
+      });
 
-      if (error) {
-        console.error('Error fetching bookings:', error);
-      } else {
-        setBookings(data || []);
-        
-        // Calculate stats
-        const totalBookings = data?.length || 0;
-        const pendingBookings = data?.filter(b => b.status === 'pending').length || 0;
-        const confirmedBookings = data?.filter(b => b.status === 'confirmed').length || 0;
-        const activeEvents = data?.filter(b => {
-          const eventDate = new Date(b.event_date);
-          const today = new Date();
-          return eventDate >= today && b.status === 'confirmed';
-        }).length || 0;
-
-        setStats({
-          totalBookings,
-          activeEvents,
-          pendingBookings,
-          confirmedBookings
-        });
-      }
     } catch (error) {
       console.error('Error fetching bookings:', error);
+      alert('Error loading bookings. Please check your database connection.');
     } finally {
       setLoading(false);
     }
@@ -73,18 +59,10 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBackToPublic, onLogou
 
   const updateBookingStatus = async (bookingId: string, newStatus: string) => {
     try {
-      const { error } = await supabase
-        .from('bookings')
-        .update({ status: newStatus })
-        .eq('id', bookingId);
+      await bookingService.updateBookingStatus(bookingId, newStatus as 'pending' | 'confirmed' | 'cancelled');
+      await fetchBookings(); // Refresh the data
+      alert('Booking status updated successfully');
 
-      if (error) {
-        console.error('Error updating booking:', error);
-        alert('Error updating booking status');
-      } else {
-        fetchBookings(); // Refresh the data
-        alert('Booking status updated successfully');
-      }
     } catch (error) {
       console.error('Error updating booking:', error);
       alert('Error updating booking status');
@@ -94,18 +72,10 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBackToPublic, onLogou
   const deleteBooking = async (bookingId: string) => {
     if (confirm('Are you sure you want to delete this booking?')) {
       try {
-        const { error } = await supabase
-          .from('bookings')
-          .delete()
-          .eq('id', bookingId);
+        await bookingService.deleteBooking(bookingId);
+        await fetchBookings(); // Refresh the data
+        alert('Booking deleted successfully');
 
-        if (error) {
-          console.error('Error deleting booking:', error);
-          alert('Error deleting booking');
-        } else {
-          fetchBookings(); // Refresh the data
-          alert('Booking deleted successfully');
-        }
       } catch (error) {
         console.error('Error deleting booking:', error);
         alert('Error deleting booking');

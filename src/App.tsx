@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useEffect } from 'react';
 import LanguageSelector from './components/LanguageSelector';
 import Header from './components/Header';
 import Hero from './components/Hero';
@@ -17,6 +18,18 @@ function App() {
   const [showBookingModal, setShowBookingModal] = useState(false);
   const [showAdminLogin, setShowAdminLogin] = useState(false);
   const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false);
+
+  // Listen for booking modal events from Gallery component
+  useEffect(() => {
+    const handleOpenBookingModal = () => {
+      setShowBookingModal(true);
+    };
+
+    window.addEventListener('openBookingModal', handleOpenBookingModal);
+    return () => {
+      window.removeEventListener('openBookingModal', handleOpenBookingModal);
+    };
+  }, []);
 
   const handleLanguageSelect = (lang: 'en' | 'te') => {
     setLanguage(lang);

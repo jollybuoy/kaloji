@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { X, Calendar, Clock, Users, MapPin, Phone, Mail, User, CreditCard, Check } from 'lucide-react';
-import { supabase } from '../lib/supabase';
+import { bookingService } from '../lib/database';
 
 interface BookingModalProps {
   isOpen: boolean;
@@ -79,7 +79,9 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, language }
         "Award Ceremony",
         "Corporate Event",
         "Literary Event",
-        "Conference"
+        "Conference",
+        "Theatre Performance",
+        "Music Concert"
       ]
     },
     te: {
@@ -123,7 +125,9 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, language }
         "పురస్కార వేడుక",
         "కార్పొరేట్ ఈవెంట్",
         "సాహిత్య కార్యక్రమం",
-        "సమావేశం"
+        "సమావేశం",
+        "థియేటర్ ప్రదర్శన",
+        "సంగీత కచేరీ"
       ]
     }
   };
@@ -149,62 +153,56 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, language }
   };
 
   const handleBookingSubmit = async () => {
+    const setIsLoading = useState(false)[1]; // Add loading state
     setIsLoading(true);
     
     try {
-      const { data, error } = await supabase
-        .from('bookings')
-        .insert([
-          {
-            event_type: formData.eventType,
-            event_name: formData.eventName,
-            event_date: formData.eventDate,
-            start_time: formData.startTime,
-            end_time: formData.endTime,
-            expected_guests: parseInt(formData.expectedGuests),
-            organizer_name: formData.organizerName,
-            organization: formData.organization || null,
-            phone: formData.phone,
-            email: formData.email,
-            address: formData.address || null,
-            catering: formData.catering,
-            decoration: formData.decoration,
-            photography: formData.photography,
-            security: formData.security,
-            parking: formData.parking,
-            special_requirements: formData.specialRequirements || null,
-            status: 'pending'
-          }
-        ]);
+      const bookingData = {
+        event_type: formData.eventType,
+        event_name: formData.eventName,
+        event_date: formData.eventDate,
+        start_time: formData.startTime,
+        end_time: formData.endTime,
+        expected_guests: parseInt(formData.expectedGuests),
+        organizer_name: formData.organizerName,
+        organization: formData.organization || undefined,
+        phone: formData.phone,
+        email: formData.email,
+        address: formData.address || undefined,
+        catering: formData.catering,
+        decoration: formData.decoration,
+        photography: formData.photography,
+        security: formData.security,
+        parking: formData.parking,
+        special_requirements: formData.specialRequirements || undefined,
+        status: 'pending' as const
+      };
 
-      if (error) {
-        console.error('Error submitting booking:', error);
-        alert(language === 'en' ? 'Error submitting booking. Please try again.' : 'బుకింగ్ సమర్పించడంలో లోపం. దయచేసి మళ్లీ ప్రయత్నించండి.');
-      } else {
-        alert(language === 'en' ? 'Booking submitted successfully! We will contact you soon.' : 'బుకింగ్ విజయవంతంగా సమర్పించబడింది! మేము త్వరలో మిమ్మల్ని సంప్రదిస్తాము.');
-        onClose();
-        setCurrentStep(1);
-        // Reset form
-        setFormData({
-          eventType: '',
-          eventName: '',
-          eventDate: '',
-          startTime: '',
-          endTime: '',
-          expectedGuests: '',
-          organizerName: '',
-          organization: '',
-          phone: '',
-          email: '',
-          address: '',
-          catering: false,
-          decoration: false,
-          photography: false,
-          security: false,
-          parking: false,
-          specialRequirements: ''
-        });
-      }
+      await bookingService.createBooking(bookingData);
+      
+      alert(language === 'en' ? 'Booking submitted successfully! We will contact you soon.' : 'బుకింగ్ విజయవంతంగా సమర్పించబడింది! మేము త్వరలో మిమ్మల్ని సంప్రదిస్తాము.');
+      onClose();
+      setCurrentStep(1);
+      // Reset form
+      setFormData({
+        eventType: '',
+        eventName: '',
+        eventDate: '',
+        startTime: '',
+        endTime: '',
+        expectedGuests: '',
+        organizerName: '',
+        organization: '',
+        phone: '',
+        email: '',
+        address: '',
+        catering: false,
+        decoration: false,
+        photography: false,
+        security: false,
+        parking: false,
+        specialRequirements: ''
+      });
     } catch (error) {
       console.error('Error submitting booking:', error);
       alert(language === 'en' ? 'Error submitting booking. Please try again.' : 'బుకింగ్ సమర్పించడంలో లోపం. దయచేసి మళ్లీ ప్రయత్నించండి.');
@@ -212,6 +210,8 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, language }
       setIsLoading(false);
     }
   };
+
+  const [isLoading, setIsLoading] = useState(false);
 
   return (
     <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
