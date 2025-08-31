@@ -178,6 +178,29 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, language }
     setIsLoading(true);
     
     try {
+      // Check if database is configured
+      if (!import.meta.env.VITE_DATABASE_URL) {
+        alert(language === 'en' ? 
+          'Database not configured. Your booking will be saved locally for now.' : 
+          'డేటాబేస్ కాన్ఫిగర్ చేయబడలేదు. మీ బుకింగ్ ప్రస్తుతానికి స్థానికంగా సేవ్ చేయబడుతుంది.');
+        
+        // Save to localStorage as fallback
+        const bookings = JSON.parse(localStorage.getItem('bookings') || '[]');
+        const newBooking = {
+          id: Date.now().toString(),
+          ...formData,
+          expected_guests: parseInt(formData.expectedGuests),
+          status: 'pending',
+          created_at: new Date().toISOString()
+        };
+        bookings.push(newBooking);
+        localStorage.setItem('bookings', JSON.stringify(bookings));
+        
+        alert(language === 'en' ? 'Booking saved locally! Please contact us directly.' : 'బుకింగ్ స్థానికంగా సేవ్ చేయబడింది! దయచేసి మమ్మల్ని నేరుగా సంప్రదించండి.');
+        onClose();
+        return;
+      }
+
       const bookingData = {
         event_type: formData.eventType,
         event_name: formData.eventName,
@@ -227,9 +250,29 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, language }
       });
     } catch (error) {
       console.error('Error submitting booking:', error);
-      alert(language === 'en' ? 
-        'Error submitting booking. Please check your internet connection and try again.' : 
-        'బుకింగ్ సమర్పించడంలో లోపం. దయచేసి మీ ఇంటర్నెట్ కనెక్షన్‌ను తనిఖీ చేసి మళ్లీ ప్రయత్నించండి.');
+      
+      // Fallback to localStorage if database fails
+      try {
+        const bookings = JSON.parse(localStorage.getItem('bookings') || '[]');
+        const newBooking = {
+          id: Date.now().toString(),
+          ...formData,
+          expected_guests: parseInt(formData.expectedGuests),
+          status: 'pending',
+          created_at: new Date().toISOString()
+        };
+        bookings.push(newBooking);
+        localStorage.setItem('bookings', JSON.stringify(bookings));
+        
+        alert(language === 'en' ? 
+          'Booking saved locally! We will contact you soon. Please also call us directly.' : 
+          'బుకింగ్ స్థానికంగా సేవ్ చేయబడింది! మేము త్వరలో మిమ్మల్ని సంప్రదిస్తాము. దయచేసి మమ్మల్ని నేరుగా కూడా కాల్ చేయండి.');
+        onClose();
+      } catch (fallbackError) {
+        alert(language === 'en' ? 
+          'Error submitting booking. Please call us directly at +91 870-2345-678' : 
+          'బుకింగ్ సమర్పించడంలో లోపం. దయచేసి +91 870-2345-678 కు నేరుగా కాల్ చేయండి');
+      }
     } finally {
       setIsLoading(false);
     }

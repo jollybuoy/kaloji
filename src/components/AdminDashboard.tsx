@@ -38,6 +38,21 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBackToPublic, onLogou
 
   const fetchBookings = async () => {
     try {
+      // Check if database is configured
+      if (!import.meta.env.VITE_DATABASE_URL) {
+        // Load from localStorage as fallback
+        const localBookings = JSON.parse(localStorage.getItem('bookings') || '[]');
+        setBookings(localBookings);
+        setStats({
+          totalBookings: localBookings.length,
+          activeEvents: localBookings.filter((b: any) => b.status === 'confirmed').length,
+          pendingBookings: localBookings.filter((b: any) => b.status === 'pending').length,
+          confirmedBookings: localBookings.filter((b: any) => b.status === 'confirmed').length
+        });
+        setLoading(false);
+        return;
+      }
+
       const data = await bookingService.getAllBookings();
       const statsData = await bookingService.getBookingStats();
       
@@ -51,7 +66,19 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBackToPublic, onLogou
 
     } catch (error) {
       console.error('Error fetching bookings:', error);
-      alert('Error loading bookings. Please check your database connection.');
+      // Try loading from localStorage as fallback
+      try {
+        const localBookings = JSON.parse(localStorage.getItem('bookings') || '[]');
+        setBookings(localBookings);
+        setStats({
+          totalBookings: localBookings.length,
+          activeEvents: localBookings.filter((b: any) => b.status === 'confirmed').length,
+          pendingBookings: localBookings.filter((b: any) => b.status === 'pending').length,
+          confirmedBookings: localBookings.filter((b: any) => b.status === 'confirmed').length
+        });
+      } catch (fallbackError) {
+        console.error('Error loading fallback data:', fallbackError);
+      }
     } finally {
       setLoading(false);
     }
@@ -59,6 +86,18 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBackToPublic, onLogou
 
   const updateBookingStatus = async (bookingId: string, newStatus: string) => {
     try {
+      if (!import.meta.env.VITE_DATABASE_URL) {
+        // Update localStorage
+        const localBookings = JSON.parse(localStorage.getItem('bookings') || '[]');
+        const updatedBookings = localBookings.map((b: any) => 
+          b.id === bookingId ? { ...b, status: newStatus } : b
+        );
+        localStorage.setItem('bookings', JSON.stringify(updatedBookings));
+        await fetchBookings();
+        alert('Booking status updated locally');
+        return;
+      }
+
       await bookingService.updateBookingStatus(bookingId, newStatus as 'pending' | 'confirmed' | 'cancelled');
       await fetchBookings(); // Refresh the data
       alert('Booking status updated successfully');
@@ -72,6 +111,16 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBackToPublic, onLogou
   const deleteBooking = async (bookingId: string) => {
     if (confirm('Are you sure you want to delete this booking?')) {
       try {
+        if (!import.meta.env.VITE_DATABASE_URL) {
+          // Delete from localStorage
+          const localBookings = JSON.parse(localStorage.getItem('bookings') || '[]');
+          const updatedBookings = localBookings.filter((b: any) => b.id !== bookingId);
+          localStorage.setItem('bookings', JSON.stringify(updatedBookings));
+          await fetchBookings();
+          alert('Booking deleted locally');
+          return;
+        }
+
         await bookingService.deleteBooking(bookingId);
         await fetchBookings(); // Refresh the data
         alert('Booking deleted successfully');

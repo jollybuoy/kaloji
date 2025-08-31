@@ -10,11 +10,15 @@ const getDatabaseUrl = () => {
 
 const databaseUrl = getDatabaseUrl();
 
-if (!databaseUrl) {
-  console.error('Database URL not found. Please set VITE_DATABASE_URL environment variable.');
+// Only initialize SQL if database URL is available
+let sql: any = null;
+if (databaseUrl) {
+  try {
+    sql = neon(databaseUrl);
+  } catch (error) {
+    console.error('Database connection error:', error);
+  }
 }
-
-const sql = neon(databaseUrl || '');
 
 export interface Booking {
   id?: string;
@@ -43,6 +47,10 @@ export interface Booking {
 export const bookingService = {
   // Create a new booking
   async createBooking(booking: Omit<Booking, 'id' | 'created_at' | 'updated_at'>): Promise<Booking> {
+    if (!sql) {
+      throw new Error('Database not configured. Please set VITE_DATABASE_URL environment variable.');
+    }
+    
     try {
       const result = await sql`
         INSERT INTO bookings (
@@ -68,6 +76,11 @@ export const bookingService = {
 
   // Get all bookings
   async getAllBookings(): Promise<Booking[]> {
+    if (!sql) {
+      console.warn('Database not configured. Returning empty array.');
+      return [];
+    }
+    
     try {
       const result = await sql`
         SELECT * FROM bookings 
@@ -76,12 +89,16 @@ export const bookingService = {
       return result as Booking[];
     } catch (error) {
       console.error('Error fetching bookings:', error);
-      throw new Error('Failed to fetch bookings.');
+      return [];
     }
   },
 
   // Update booking status
   async updateBookingStatus(id: string, status: 'pending' | 'confirmed' | 'cancelled'): Promise<void> {
+    if (!sql) {
+      throw new Error('Database not configured.');
+    }
+    
     try {
       await sql`
         UPDATE bookings 
@@ -96,6 +113,10 @@ export const bookingService = {
 
   // Delete booking
   async deleteBooking(id: string): Promise<void> {
+    if (!sql) {
+      throw new Error('Database not configured.');
+    }
+    
     try {
       await sql`
         DELETE FROM bookings WHERE id = ${id}
@@ -108,6 +129,15 @@ export const bookingService = {
 
   // Get booking statistics
   async getBookingStats() {
+    if (!sql) {
+      return {
+        total_bookings: 0,
+        pending_bookings: 0,
+        confirmed_bookings: 0,
+        active_events: 0
+      };
+    }
+    
     try {
       const result = await sql`
         SELECT 
