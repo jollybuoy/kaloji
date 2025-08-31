@@ -39,7 +39,11 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBackToPublic, onLogou
   const fetchBookings = async () => {
     try {
       // Check if database is configured
-      if (!import.meta.env.VITE_DATABASE_URL) {
+      const databaseUrl = import.meta.env.VITE_DATABASE_URL || 
+                         import.meta.env.VITE_NETLIFY_DATABASE_URL ||
+                         (typeof process !== 'undefined' ? process.env.NETLIFY_DATABASE_URL : null);
+      
+      if (!databaseUrl) {
         // Load from localStorage as fallback
         const localBookings = JSON.parse(localStorage.getItem('bookings') || '[]');
         setBookings(localBookings);

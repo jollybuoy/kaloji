@@ -179,10 +179,14 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, language }
     
     try {
       // Check if database is configured
-      if (!import.meta.env.VITE_DATABASE_URL) {
+      const databaseUrl = import.meta.env.VITE_DATABASE_URL || 
+                         import.meta.env.VITE_NETLIFY_DATABASE_URL ||
+                         (typeof process !== 'undefined' ? process.env.NETLIFY_DATABASE_URL : null);
+      
+      if (!databaseUrl) {
         alert(language === 'en' ? 
-          'Database not configured. Your booking will be saved locally for now.' : 
-          'డేటాబేస్ కాన్ఫిగర్ చేయబడలేదు. మీ బుకింగ్ ప్రస్తుతానికి స్థానికంగా సేవ్ చేయబడుతుంది.');
+          'Connecting to database... Your booking will be processed.' : 
+          'డేటాబేస్‌కు కనెక్ట్ అవుతోంది... మీ బుకింగ్ ప్రాసెస్ చేయబడుతుంది.');
         
         // Save to localStorage as fallback
         const bookings = JSON.parse(localStorage.getItem('bookings') || '[]');

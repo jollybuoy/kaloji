@@ -2,9 +2,14 @@ import { neon } from '@neondatabase/serverless';
 
 // For Netlify deployment, the DATABASE_URL will be available as an environment variable
 const getDatabaseUrl = () => {
-  // Check for Netlify environment variable first, then fallback to Vite env
+  // Check for Netlify environment variable first
+  if (typeof process !== 'undefined' && process.env.NETLIFY_DATABASE_URL) {
+    return process.env.NETLIFY_DATABASE_URL;
+  }
+  
+  // Fallback to Vite env variables
   return import.meta.env.VITE_DATABASE_URL || 
-         (typeof process !== 'undefined' ? process.env.NETLIFY_DATABASE_URL : null) ||
+         import.meta.env.VITE_NETLIFY_DATABASE_URL ||
          (typeof process !== 'undefined' ? process.env.DATABASE_URL : null);
 };
 
