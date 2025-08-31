@@ -179,8 +179,10 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, language }
     
     try {
       // Check if database is configured
-      const databaseUrl = import.meta.env.VITE_DATABASE_URL || 
+      const databaseUrl = import.meta.env.VITE_DATABASE_URL_UNPOOLED ||
+                         import.meta.env.VITE_DATABASE_URL || 
                          import.meta.env.VITE_NETLIFY_DATABASE_URL ||
+                         import.meta.env.VITE_NETLIFY_DATABASE_URL_UNPOOLED ||
                          (typeof process !== 'undefined' ? process.env.NETLIFY_DATABASE_URL : null);
       
       if (!databaseUrl) {

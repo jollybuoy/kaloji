@@ -5,7 +5,8 @@ import react from '@vitejs/plugin-react';
 export default defineConfig({
   plugins: [react()],
   define: {
-    'process.env.NETLIFY_DATABASE_URL': JSON.stringify(process.env.NETLIFY_DATABASE_URL)
+    'process.env.NETLIFY_DATABASE_URL': JSON.stringify(process.env.NETLIFY_DATABASE_URL),
+    'process.env.NETLIFY_DATABASE_URL_UNPOOLED': JSON.stringify(process.env.NETLIFY_DATABASE_URL_UNPOOLED)
   },
   optimizeDeps: {
     exclude: ['lucide-react'],

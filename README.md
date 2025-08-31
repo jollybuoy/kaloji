@@ -24,7 +24,7 @@ This project uses Neon PostgreSQL database. To set up:
 For Netlify deployment, set these environment variables:
 
 ```
-VITE_DATABASE_URL=your_neon_database_connection_string
+NETLIFY_DATABASE_URL_UNPOOLED=your_neon_unpooled_connection_string
 ```
 
 ## Admin Credentials
