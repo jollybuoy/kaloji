@@ -73,7 +73,7 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, language }
       },
       eventTypes: [
         "Cultural Festival",
-        "Classical Performance",
+        "Classical Performance", 
         "Art Exhibition",
         "Government Function",
         "Award Ceremony",
@@ -81,7 +81,9 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, language }
         "Literary Event",
         "Conference",
         "Theatre Performance",
-        "Music Concert"
+        "Music Concert",
+        "Poetry Recital",
+        "Folk Dance Performance"
       ]
     },
     te: {
@@ -120,14 +122,16 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, language }
       eventTypes: [
         "సాంస్కృతిక ఉత్సవం",
         "శాస్త్రీయ ప్రదర్శన",
-        "కళా ప్రదర్శన",
+        "కళా ప్రదర్శన", 
         "ప్రభుత్వ కార్యక్రమం",
         "పురస్కార వేడుక",
         "కార్పొరేట్ ఈవెంట్",
         "సాహిత్య కార్యక్రమం",
         "సమావేశం",
         "థియేటర్ ప్రదర్శన",
-        "సంగీత కచేరీ"
+        "సంగీత కచేరీ",
+        "కవిత్వ పఠనం",
+        "జానపద నృత్య ప్రదర్శన"
       ]
     }
   };
@@ -149,11 +153,28 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, language }
   };
 
   const handleSubmit = () => {
-    handleBookingSubmit();
+    if (validateForm()) {
+      handleBookingSubmit();
+    }
+  };
+
+  const validateForm = () => {
+    if (currentStep === 1) {
+      if (!formData.eventType || !formData.eventName || !formData.eventDate || 
+          !formData.startTime || !formData.endTime || !formData.expectedGuests) {
+        alert(language === 'en' ? 'Please fill all required fields' : 'దయచేసి అన్ని అవసరమైన ఫీల్డ్‌లను పూరించండి');
+        return false;
+      }
+    } else if (currentStep === 2) {
+      if (!formData.organizerName || !formData.phone || !formData.email) {
+        alert(language === 'en' ? 'Please fill all required contact fields' : 'దయచేసి అన్ని అవసరమైన సంప్రదింపు ఫీల్డ్‌లను పూరించండి');
+        return false;
+      }
+    }
+    return true;
   };
 
   const handleBookingSubmit = async () => {
-    const setIsLoading = useState(false)[1]; // Add loading state
     setIsLoading(true);
     
     try {
@@ -181,9 +202,10 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, language }
       await bookingService.createBooking(bookingData);
       
       alert(language === 'en' ? 'Booking submitted successfully! We will contact you soon.' : 'బుకింగ్ విజయవంతంగా సమర్పించబడింది! మేము త్వరలో మిమ్మల్ని సంప్రదిస్తాము.');
+      
+      // Reset form and close modal
       onClose();
       setCurrentStep(1);
-      // Reset form
       setFormData({
         eventType: '',
         eventName: '',
@@ -205,7 +227,9 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, language }
       });
     } catch (error) {
       console.error('Error submitting booking:', error);
-      alert(language === 'en' ? 'Error submitting booking. Please try again.' : 'బుకింగ్ సమర్పించడంలో లోపం. దయచేసి మళ్లీ ప్రయత్నించండి.');
+      alert(language === 'en' ? 
+        'Error submitting booking. Please check your internet connection and try again.' : 
+        'బుకింగ్ సమర్పించడంలో లోపం. దయచేసి మీ ఇంటర్నెట్ కనెక్షన్‌ను తనిఖీ చేసి మళ్లీ ప్రయత్నించండి.');
     } finally {
       setIsLoading(false);
     }
@@ -540,7 +564,11 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, language }
           <div className="flex space-x-3">
             {currentStep < 4 ? (
               <button
-                onClick={handleNext}
+                onClick={() => {
+                  if (validateForm()) {
+                    handleNext();
+                  }
+                }}
                 className="bg-gradient-to-r from-orange-500 to-red-600 text-white px-6 py-2 rounded-lg font-medium hover:from-orange-600 hover:to-red-700 transition-all duration-200"
               >
                 {t.buttons.next}
@@ -548,10 +576,22 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, language }
             ) : (
               <button
                 onClick={handleSubmit}
-                className="bg-gradient-to-r from-green-500 to-green-600 text-white px-6 py-2 rounded-lg font-medium hover:from-green-600 hover:to-green-700 transition-all duration-200 flex items-center space-x-2"
+                disabled={isLoading}
+                className={`bg-gradient-to-r from-green-500 to-green-600 text-white px-6 py-2 rounded-lg font-medium hover:from-green-600 hover:to-green-700 transition-all duration-200 flex items-center space-x-2 ${
+                  isLoading ? 'opacity-50 cursor-not-allowed' : ''
+                }`}
               >
-                <CreditCard className="w-4 h-4" />
-                <span>{t.buttons.submit}</span>
+                {isLoading ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    <span>{language === 'en' ? 'Submitting...' : 'సమర్పిస్తోంది...'}</span>
+                  </>
+                ) : (
+                  <>
+                    <CreditCard className="w-4 h-4" />
+                    <span>{t.buttons.submit}</span>
+                  </>
+                )}
               </button>
             )}
           </div>

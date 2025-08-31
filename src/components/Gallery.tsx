@@ -190,11 +190,7 @@ const Gallery: React.FC<GalleryProps> = ({ language }) => {
               }
             </p>
             <button 
-              onClick={() => {
-                // This should trigger the booking modal from the parent component
-                // We need to pass this function from the parent
-                window.dispatchEvent(new CustomEvent('openBookingModal'));
-              }}
+              onClick={() => window.dispatchEvent(new CustomEvent('openBookingModal'))}
               className="bg-gradient-to-r from-orange-500 to-red-600 text-white px-8 py-3 rounded-lg font-semibold hover:shadow-lg transform hover:scale-105 transition-all duration-200"
             >
               {language === 'en' ? "Book Your Event" : "మీ కార్యక్రమాన్ని బుక్ చేయండి"}
